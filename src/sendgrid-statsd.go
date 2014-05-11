@@ -6,15 +6,30 @@ import (
 	"encoding/json"
 	"log"
 	"bytes"
+	"github.com/cactus/go-statsd-client/statsd"
+	"time"
 )
 
 func main() {
-	fmt.Printf("Starting sendgrid webhook endpoint...\n")
-	http.HandleFunc("/", handler)
+	log.Print("Starting sendgrid webhook endpoint...")
+	// first create a client
+	client, err := statsd.New("127.0.0.1:8125", "test-client")
+	// handle any errors
+	if err != nil {
+		log.Fatal(err)
+	}
+	// make sure to clean up
+	defer client.Close()
+
+	http.HandleFunc("/",  func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r, client)
+	})
+
+	log.Print("done\n")
 	http.ListenAndServe(":9090", nil)
 }
 
-func handler(w http.ResponseWriter, r *http.Request) {
+func handler(w http.ResponseWriter, r *http.Request, client *statsd.Client) {
 	fmt.Fprintf(w, "Thanks!")
 
 	if (r.Method != "POST") {
@@ -29,6 +44,13 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 	for _, item := range ec {
-		fmt.Printf("%s(%s): %s\n", item["email"], item["timestamp"], item["event"])
+		// Send a stat
+		err := client.Inc("stat1", 42, 1.0)
+		// handle any errors
+		if err != nil {
+			log.Fatalf("Error sending metric: %+v", err)
+		}
+
+		log.Printf("%s(%s): %s\n", item["email"], time.Unix(int64(item["timestamp"].(float64)), 0), item["event"])
 	}
 }
