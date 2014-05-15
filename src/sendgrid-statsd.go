@@ -2,18 +2,27 @@ package main
 
 import (
 	"fmt"
+	"flag"
 	"net/http"
 	"encoding/json"
 	"log"
 	"bytes"
 	"github.com/cactus/go-statsd-client/statsd"
 	"time"
+	"github.com/rakyll/globalconf"
 )
 
 func main() {
 	log.Print("Starting sendgrid webhook endpoint...")
+	// Config format
+
+	statsdHost := flag.String("statsd_host", "", "")
+
+	conf, err := globalconf.New("sendgridstatsd")
+	conf.ParseAll()
+
 	// first create a client
-	client, err := statsd.New("127.0.0.1:8125", "test-client")
+	client, err := statsd.New(*statsdHost, "test-client")
 	// handle any errors
 	if err != nil {
 		log.Fatal(err)
@@ -30,12 +39,12 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request, client *statsd.Client) {
-	fmt.Fprintf(w, "Thanks!")
-
 	if (r.Method != "POST") {
 		log.Fatal("Expected POST request")
-		// should i return a 200 or sth else (which would stop sendgrid sending any more events)
 	}
+
+	fmt.Fprintf(w, "Thanks!")
+
 	buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
 	var ec []map[string]interface{}
@@ -44,8 +53,7 @@ func handler(w http.ResponseWriter, r *http.Request, client *statsd.Client) {
 		log.Fatal(err)
 	}
 	for _, item := range ec {
-		// Send a stat
-		err := client.Inc("stat1", 42, 1.0)
+		err := client.Inc(item["event"].(string), 1, 1.0)
 		// handle any errors
 		if err != nil {
 			log.Fatalf("Error sending metric: %+v", err)
