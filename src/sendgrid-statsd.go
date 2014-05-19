@@ -2,21 +2,21 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"flag"
+	"time"
+	"bytes"
 	"net/http"
 	"encoding/json"
-	"log"
-	"bytes"
-	"github.com/cactus/go-statsd-client/statsd"
-	"time"
 	"github.com/rakyll/globalconf"
+	"github.com/cactus/go-statsd-client/statsd"
 )
 
 func main() {
 	log.Print("Starting sendgrid webhook endpoint...")
 	// Config format
 
-	statsdHost := flag.String("statsd_host", "", "")
+	statsdHost := flag.String("statsd_host", "127.0.0.1:8125", "")
 
 	conf, err := globalconf.New("sendgridstatsd")
 	conf.ParseAll()
@@ -53,7 +53,7 @@ func handler(w http.ResponseWriter, r *http.Request, client *statsd.Client) {
 		log.Fatal(err)
 	}
 	for _, item := range ec {
-		err := client.Inc(item["event"].(string), 1, 1.0)
+		err := client.Inc(item["event"].(string), 1.(int64), 1.0.(float64))
 		// handle any errors
 		if err != nil {
 			log.Fatalf("Error sending metric: %+v", err)
