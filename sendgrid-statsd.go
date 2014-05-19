@@ -21,7 +21,7 @@ func main() {
 	conf.ParseAll()
 
 	log.Printf("Sending to statdsd host: %+v", *statsdHost)
-	
+
 	// first create a client
 	client, err := statsd.New(*statsdHost, "test-client")
 	// handle any errors

@@ -29,7 +29,7 @@ ADD . /go/src/github.com/JannKleen/sendgrid-statsd
 RUN go get
 RUN go build
 EXPOSE 9090
-ENTRYPOINT ./sendgrid-statsd
+ENTRYPOINT ./start_sendgrid_statsd.sh
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
