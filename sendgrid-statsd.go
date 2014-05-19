@@ -59,6 +59,11 @@ func handler(w http.ResponseWriter, r *http.Request, client *statsd.Client) {
 		if err != nil {
 			log.Fatalf("Error sending metric: %+v", err)
 		}
+		err = client.Inc("mail.event", 1, 1.0)
+		// handle any errors
+		if err != nil {
+			log.Fatalf("Error sending metric: %+v", err)
+		}
 
 		log.Printf("%s(%s): %s\n", item["email"], time.Unix(int64(item["timestamp"].(float64)), 0), item["event"])
 	}
