@@ -14,13 +14,14 @@ import (
 
 func main() {
 	log.Print("Starting sendgrid webhook endpoint...")
-	// Config format
 
 	statsdHost := flag.String("statsd_host", "127.0.0.1:8125", "")
 
 	conf, err := globalconf.New("sendgridstatsd")
 	conf.ParseAll()
 
+	log.Printf("Sending to statdsd host: %+v", *statsdHost)
+	
 	// first create a client
 	client, err := statsd.New(*statsdHost, "test-client")
 	// handle any errors
