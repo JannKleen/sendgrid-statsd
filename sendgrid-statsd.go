@@ -55,7 +55,7 @@ func handler(w http.ResponseWriter, r *http.Request, client *statsd.Client) {
 		log.Fatal(err)
 	}
 	for _, item := range ec {
-		err := client.Inc(item["event"].(string), 1, 1.0)
+		err := client.Inc("mail.event_type." + item["event"].(string), 1, 1.0)
 		// handle any errors
 		if err != nil {
 			log.Fatalf("Error sending metric: %+v", err)
